@@ -8,8 +8,8 @@ import java.util.*;
 
 public class Util {
 
-    private JFileChooser selectorArchivo;
-    private FileNameExtensionFilter filtroExtensionArchivo;
+    private JFileChooser fileSelector;
+    private FileNameExtensionFilter filter;
     private File file;
     private FileWriter writer;
     private FileReader reader;
@@ -19,13 +19,13 @@ public class Util {
     public String getPathFile(String tipo) {
         int opcionSeleccionada;
         String rutaArchivo = "";
-        selectorArchivo = new JFileChooser("C:/Users/Meridean HP/Desktop");
-        filtroExtensionArchivo = new FileNameExtensionFilter("Archivos de texto (."+tipo+")", tipo);
-        selectorArchivo.setFileFilter(filtroExtensionArchivo);
-        opcionSeleccionada = selectorArchivo.showOpenDialog(selectorArchivo);
+        fileSelector = new JFileChooser("/home/meridean-hp/repositorios/miau/gold_files");
+        filter = new FileNameExtensionFilter("Archivos de texto (."+tipo+")", tipo);
+        fileSelector.setFileFilter(filter);
+        opcionSeleccionada = fileSelector.showOpenDialog(fileSelector);
 
         if(opcionSeleccionada == JFileChooser.APPROVE_OPTION) {
-            rutaArchivo = selectorArchivo.getSelectedFile().getAbsolutePath();
+            rutaArchivo = fileSelector.getSelectedFile().getAbsolutePath();
         }
         else {
             System.exit(0);
@@ -34,25 +34,24 @@ public class Util {
         return rutaArchivo;
     }
 
-    public String loadFileText() {
-        String textLoad = "";
+    public ArrayList<String> readGoldFile() {
+
+        ArrayList<String> linesGoldFile = new ArrayList<String>();
         try{
             String path = getPathFile("txt");
             file = new File(path);
             reader = new FileReader(file);
             bufferedReader = new BufferedReader(reader);
-            StringBuilder sbText = new StringBuilder();
             String line;
             while((line = bufferedReader.readLine()) != null){
-                sbText.append(line);
-                sbText.append(" ");
+                linesGoldFile.add(line);
             }
-            textLoad = sbText.toString();
+
         } catch (Exception e){
-            System.err.println("Problema cargando archivo\n" + e.getMessage());
+            System.err.println("Problema leyendo archivo\n" + e.getMessage());
         }
 
-        return textLoad;
+        return linesGoldFile;
     }
 
     public void createTextFile(){
@@ -93,58 +92,4 @@ public class Util {
         }
     }
 
-    public ArrayList<String> textToWordsList(String text){
-        ArrayList<String> wordsList =  new ArrayList<String>();
-        Set<String> setWords = new HashSet<String>();
-        StringTokenizer tokensText = new StringTokenizer(text);
-        System.out.println("tam: "+tokensText.countTokens());
-        while(tokensText.hasMoreTokens()){
-            String word = tokensText.nextToken().trim();
-            if(!word.isEmpty()){
-                setWords.add(word);
-            }
-        }
-
-        Iterator<String> iterator = setWords.iterator();
-        while (iterator.hasNext()) {
-            wordsList.add(iterator.next());
-        }
-
-        return wordsList;
-    }
-
-    public  ArrayList<String> processText(){
-        String text = loadFileText();
-        ArrayList<String> wordsList = textToWordsList(text);
-
-        ArrayList<String> cleanWordsList;
-        cleanWordsList = new ArrayList<String>(Preprocesamiento.ejecutarPreprocesamiento(wordsList));
-
-        return cleanWordsList;
-    }
-
-    public void cleanText(){
-        ArrayList<String> cleanWordsList = processText();
-        createTextFile();
-        for(int i=0; i<cleanWordsList.size(); i++){
-            String word = cleanWordsList.get(i);
-            writeWordInFile(word + " ");
-        }
-        closeTextFile();
-    }
-
-    public void deleteUrlsDuplicated(){
-        String text = loadFileText();
-        ArrayList<String> wordsList = textToWordsList(text);
-
-        createTextFile();
-
-        for(int i=0; i<wordsList.size(); i++){
-            writeLineInFile(wordsList.get(i));
-        }
-
-        closeTextFile();
-
-        System.out.println("new: "+wordsList.size());
-    }
 }
